@@ -5,11 +5,12 @@ const path = require('path');
 const cors = require('cors');
 const request = require('request');
 const Sequelize = require('sequelize');
+const bcrypt = require('bcryptjs');
 
 app.use(cors());
 app.use(bodyParser.json());
 
-const sequelize = new Sequelize('bradatabase', 'root', 'root', {
+const sequelize = new Sequelize('mydb', 'root', 'root', {
   host: 'localhost',
   dialect: 'mysql',
 
@@ -25,24 +26,20 @@ const sequelize = new Sequelize('bradatabase', 'root', 'root', {
 });
 
 const User = sequelize.define('users', {
-  'first name': Sequelize.STRING,
-  'last name': Sequelize.STRING,
+  firstName: Sequelize.STRING,
+  lastName: Sequelize.STRING,
   email: Sequelize.STRING,
-  'phone number': Sequelize.STRING,
+  phoneNumber: Sequelize.STRING,
   password: Sequelize.STRING
-}, {
-  timestamps: false
 });
 const Message = sequelize.define('messages', {
-  content: Sequelize.STRING,
-  created_at: Sequelize.DATE,
-  updated_at: Sequelize.DATE
-},{
-  timestamps: false
+  content: Sequelize.STRING
 });
 User.hasMany(Message, {as: 'Users'})
+User.belongsToMany(User, {as: 'Friend',through:'friendships'})
 
 sequelize.sync()
+/*
   .then(() => User.create({
     'first name': 'jane',
     'last name': 'doe',
@@ -53,9 +50,40 @@ sequelize.sync()
   .then(jane => {
     console.log(jane.toJSON());
   });
+  */
 
 app.get('/', function(req,res) {
   res.json("My string");
+}
+)
+
+app.post('/api/users/create', function(req,res) {
+  User.create(req.body); //Don't call until everything is verified
+  res.json(req.body);
+}
+)
+app.post('/api/users/passTest', function(req,res) {
+  var password = req.body.password;
+  bcrypt.hash(password,10)
+    .then(hashPassword => {
+      res.json(hashPassword);
+    })
+}
+)
+app.post('/api/users/passTestReturn', function(req,res) {
+  let storedPassword = '$2a$10$f1RCTpVHPZZ4dfDAyT2NzOP9XEOcIxcJT1T1PSlt/dxeeGIilRgt2';
+  var realPassword = req.body.password;
+  bcrypt.compare(realPassword,storedPassword)
+    .then(result => {
+      if (result) {
+        res.json(result);
+      } else {
+        res.json('nope');
+      }
+    })
+    .catch(error => {
+      res.json('you messed up');
+    })
 }
 )
 
