@@ -58,8 +58,45 @@ app.get('/', function(req,res) {
 )
 
 app.post('/api/users/create', function(req,res) {
-  User.create(req.body); //Don't call until everything is verified
-  res.json(req.body);
+  var indicator = 0;
+  var validateName = /[a-zA-Z]{2,45}/g;
+  if (!validateName.test(req.body.firstName)) {
+    res.json('First Name must be at least two characters long and only contain letters.');
+    indicator = 1;
+  }
+  validateName = /[a-zA-Z]{2,45}/g;
+  if (!validateName.test(req.body.lastName)) {
+    res.json('Last name must be at least two characters long and only contain letters.');
+    indicator = 1;
+  }
+  var validateEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!validateEmail.test(req.body.email)) {
+    res.json('Must contain valid email address.');
+    indicator = 1;
+  }
+  var validateEmail
+  var validatePhone = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
+  if (!validatePhone.test(req.body.phoneNumber)) {
+    res.json('Must contain valid phone number.');
+    indicator = 1;
+  }
+  var validatePassword = /.{8,45}/g;
+  if (!validatePassword.test(req.body.password)) {
+    res.json('Password must be at least 8 characters long.');
+    indicator = 1;
+  }
+  if (!indicator) {
+    let newUser = new User();
+    bcrypt.hash(req.body.password,10)
+      .then(hashPassword => {
+        newUser.firstName = req.body.firstName;
+        newUser.lastName = req.body.lastName;
+        newUser.email = req.body.email;
+        newUser.phoneNumber = req.body.phoneNumber;
+        newUser.password = hashPassword;
+        newUser.save().then(function() {res.json(req.body)})
+    })
+  }
 }
 )
 app.post('/api/users/passTest', function(req,res) {
