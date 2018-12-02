@@ -4,7 +4,8 @@
   "description": "Boiler plate for app login",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "mysql2": "^1.6.4",
+    "nodemon": "^1.18.7",
     "request": "^2.88.0",
     "sequelize": "^4.41.2"
   }

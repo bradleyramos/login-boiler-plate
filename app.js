@@ -26,7 +26,18 @@ const sequelize = new Sequelize('mydb', 'root', 'root', {
 });
 
 const User = sequelize.define('users', {
-  firstName: Sequelize.STRING,
+  firstName: {
+    type: Sequelize.STRING,
+    /*
+    validate: {
+      validateName: function(value) {
+        if (!/[a-zA-Z]{2,45}/g.test(value)) {
+          throw new Error('First Name must be at least two characters long and only contain letters.')
+        }
+      }
+    }
+  },
+  */
   lastName: Sequelize.STRING,
   email: Sequelize.STRING,
   phoneNumber: Sequelize.STRING,
@@ -62,7 +73,6 @@ app.post('/api/users/create', function(req,res) {
   var validateName = /[a-zA-Z]{2,45}/g;
   if (!validateName.test(req.body.firstName)) {
     res.json('First Name must be at least two characters long and only contain letters.');
-    indicator = 1;
   }
   validateName = /[a-zA-Z]{2,45}/g;
   if (!validateName.test(req.body.lastName)) {
@@ -74,15 +84,15 @@ app.post('/api/users/create', function(req,res) {
     res.json('Must contain valid email address.');
     indicator = 1;
   }
-  var validateEmail
+  var validateEmailExists= "";
   var validatePhone = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
   if (!validatePhone.test(req.body.phoneNumber)) {
     res.json('Must contain valid phone number.');
     indicator = 1;
   }
-  var validatePassword = /.{8,45}/g;
+  var validatePassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!validatePassword.test(req.body.password)) {
-    res.json('Password must be at least 8 characters long.');
+    res.json('Password must be at least 8 characters long contain a number.');
     indicator = 1;
   }
   if (!indicator) {
