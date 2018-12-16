@@ -25,23 +25,66 @@ const sequelize = new Sequelize('mydb', 'root', 'root', {
   operatorsAliases: false
 });
 
+
 const User = sequelize.define('users', {
   firstName: {
     type: Sequelize.STRING,
-    /*
     validate: {
       validateName: function(value) {
-        if (!/[a-zA-Z]{2,45}/g.test(value)) {
-          throw new Error('First Name must be at least two characters long and only contain letters.')
+        if(!/[a-zA-Z]{2,45}/g.test(value)) {
+          throw new Error('First name must be at least two letters.')
         }
       }
     }
   },
-  */
-  lastName: Sequelize.STRING,
-  email: Sequelize.STRING,
-  phoneNumber: Sequelize.STRING,
-  password: Sequelize.STRING
+  lastName: {
+    type: Sequelize.STRING,
+    validate: {
+      validateName: function(value) {
+        if(!/[a-zA-Z]{2,45}/g.test(value)) {
+          throw new Error('Last name must be at least two letters.')
+        }
+      }
+    }
+  },
+  email: {
+    type: Sequelize.STRING,
+    validate: {
+      isEmail: {
+        msg: "Must be valid email."
+      },
+      validateUniqueEmail: function(value,next) {
+        User.findOne({
+          where: { email: value },
+        }).done(user => {
+          if (user) {
+            return next ('Email already exists.');
+          }
+          next();
+        })
+      }
+      }
+    },
+  phoneNumber: {
+    type: Sequelize.STRING,
+    validate: {
+      validatePhoneNumber: function(value) {
+        if(!/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(value)) {
+          throw new Error('Must be valid phone number.')
+        }
+      }
+    }
+  },
+  password: {
+    type: Sequelize.STRING,
+    validate: {
+      validatePassword: function(value) {
+        if(!/.+/.test(value)) {
+          throw new Error('Password must be at least 8 characters long, contain a capital letter and a number.')
+        }
+      }
+    }
+  },
 });
 const Message = sequelize.define('messages', {
   content: Sequelize.STRING
@@ -69,44 +112,37 @@ app.get('/', function(req,res) {
 )
 
 app.post('/api/users/create', function(req,res) {
-  var indicator = 0;
-  var validateName = /[a-zA-Z]{2,45}/g;
-  if (!validateName.test(req.body.firstName)) {
-    res.json('First Name must be at least two characters long and only contain letters.');
-  }
-  validateName = /[a-zA-Z]{2,45}/g;
-  if (!validateName.test(req.body.lastName)) {
-    res.json('Last name must be at least two characters long and only contain letters.');
-    indicator = 1;
-  }
-  var validateEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  if (!validateEmail.test(req.body.email)) {
-    res.json('Must contain valid email address.');
-    indicator = 1;
-  }
-  var validateEmailExists= "";
-  var validatePhone = /^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-  if (!validatePhone.test(req.body.phoneNumber)) {
-    res.json('Must contain valid phone number.');
-    indicator = 1;
-  }
+  var indicator = false;
   var validatePassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!validatePassword.test(req.body.password)) {
-    res.json('Password must be at least 8 characters long contain a number.');
-    indicator = 1;
+    indicator = true;
   }
-  if (!indicator) {
-    let newUser = new User();
-    bcrypt.hash(req.body.password,10)
-      .then(hashPassword => {
-        newUser.firstName = req.body.firstName;
-        newUser.lastName = req.body.lastName;
-        newUser.email = req.body.email;
-        newUser.phoneNumber = req.body.phoneNumber;
-        newUser.password = hashPassword;
-        newUser.save().then(function() {res.json(req.body)})
+  let newUser = new User();
+  bcrypt.hash(req.body.password,10)
+    .then(hashPassword => {
+      if (indicator) {
+        hashPassword = '';
+      }
+      console.log(hashPassword);
+      newUser.firstName = req.body.firstName;
+      newUser.lastName = req.body.lastName;
+      newUser.email = req.body.email;
+      newUser.phoneNumber = req.body.phoneNumber;
+      newUser.password = hashPassword;
+      newUser.save().then(function(r) {
+        let result = {};
+        result['message'] = 'Account creation succeeded.';
+        res.json(result);
+      }).catch(err => {
+          console.log(err);
+          let result =  {};
+          for(let error of err.errors) {
+            result[error.path] = error.message;
+          }
+          result['message'] = 'Account creation failed.';
+          return res.json(result);
+        })
     })
-  }
 }
 )
 app.post('/api/users/passTest', function(req,res) {
