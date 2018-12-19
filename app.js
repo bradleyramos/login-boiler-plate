@@ -25,10 +25,11 @@ const sequelize = new Sequelize('mydb', 'root', 'root', {
   operatorsAliases: false
 });
 
-
+/* This defines a User with a first name, last name, email, phone number, and password */
 const User = sequelize.define('users', {
   firstName: {
     type: Sequelize.STRING,
+    /* Check that first name is between 2 and 45 letters */
     validate: {
       validateName: function(value) {
         if(!/[a-zA-Z]{2,45}/g.test(value)) {
@@ -39,6 +40,7 @@ const User = sequelize.define('users', {
   },
   lastName: {
     type: Sequelize.STRING,
+    /* Check that last name is between 2 and 45 letters */
     validate: {
       validateName: function(value) {
         if(!/[a-zA-Z]{2,45}/g.test(value)) {
@@ -49,10 +51,12 @@ const User = sequelize.define('users', {
   },
   email: {
     type: Sequelize.STRING,
+    /* Check that the email is valid using built-in validation */
     validate: {
       isEmail: {
         msg: "Must be valid email."
       },
+      /* Make a call to the database to see if the email has already been used */
       validateUniqueEmail: function(value,next) {
         User.findOne({
           where: { email: value },
@@ -67,6 +71,7 @@ const User = sequelize.define('users', {
     },
   phoneNumber: {
     type: Sequelize.STRING,
+    /* Check that phone number is valid */
     validate: {
       validatePhoneNumber: function(value) {
         if(!/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(value)) {
@@ -77,6 +82,7 @@ const User = sequelize.define('users', {
   },
   password: {
     type: Sequelize.STRING,
+    /* Check that password is not an empty string (Did the indicator flag get triggered?) */
     validate: {
       validatePassword: function(value) {
         if(!/.+/.test(value)) {
@@ -86,6 +92,8 @@ const User = sequelize.define('users', {
     }
   },
 });
+
+/* Messages are an anticipated feature, but I decided to set up the implementation for later */
 const Message = sequelize.define('messages', {
   content: Sequelize.STRING
 });
@@ -93,7 +101,8 @@ User.hasMany(Message, {as: 'Users'})
 User.belongsToMany(User, {as: 'Friend',through:'friendships'})
 
 sequelize.sync()
-/*
+
+/* //This was to test feeding the database json to create a User
   .then(() => User.create({
     'first name': 'jane',
     'last name': 'doe',
@@ -106,24 +115,31 @@ sequelize.sync()
   });
   */
 
+/* Simple get function from database. Does not actually get anything from database */
 app.get('/', function(req,res) {
   res.json("My string");
 }
 )
 
+/* Calls for the creation of a user, but only wors if all validation steps pass */
 app.post('/api/users/create', function(req,res) {
+  /* Because we are hashing the password ourselves, we have to validate the password before we hash it */
   var indicator = false;
   var validatePassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!validatePassword.test(req.body.password)) {
+    /* If validatePassword fails, then we flag the indicator to set hashPassword to fail*/
     indicator = true;
   }
+  /* Initialize a new user so that we can set the password field to a hashed version */
   let newUser = new User();
   bcrypt.hash(req.body.password,10)
     .then(hashPassword => {
       if (indicator) {
+        /* Set hashPassword to emptyString, failing validation */
         hashPassword = '';
       }
       console.log(hashPassword);
+      /* Define each field to its corresponding received json data */
       newUser.firstName = req.body.firstName;
       newUser.lastName = req.body.lastName;
       newUser.email = req.body.email;
@@ -145,6 +161,7 @@ app.post('/api/users/create', function(req,res) {
     })
 }
 )
+/* This is a test, converting an unhashed password to hash */
 app.post('/api/users/passTest', function(req,res) {
   var password = req.body.password;
   bcrypt.hash(password,10)
@@ -153,6 +170,8 @@ app.post('/api/users/passTest', function(req,res) {
     })
 }
 )
+/* Another test, using a hardcoded hashed password from the above function,
+ we check if inputted password is the same as the hashed password */
 app.post('/api/users/passTestReturn', function(req,res) {
   let storedPassword = '$2a$10$f1RCTpVHPZZ4dfDAyT2NzOP9XEOcIxcJT1T1PSlt/dxeeGIilRgt2';
   var realPassword = req.body.password;
