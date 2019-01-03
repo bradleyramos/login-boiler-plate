@@ -189,7 +189,14 @@ app.post('/api/users/passTestReturn', function(req,res) {
 }
 )
 
-app.listen(8000, function() {
-  console.log("listening on port 8000");
+/* //PUT request to change the password of a given email. Find email, change corresponding password
+app.put('/api/users/changePassword', function(req,res) {
+  
+}
+)
+*/
+
+app.listen(3306, function() {
+  console.log("listening on port 3306");
 }
 )
