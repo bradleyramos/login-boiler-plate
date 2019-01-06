@@ -117,7 +117,7 @@ sequelize.sync()
 
 /* Simple get function from database. Does not actually get anything from database */
 app.get('/', function(req,res) {
-  res.json("My string");
+  res.json("Brad's Sample Page");
 }
 )
 
@@ -189,12 +189,20 @@ app.post('/api/users/passTestReturn', function(req,res) {
 }
 )
 
-/* //PUT request to change the password of a given email. Find email, change corresponding password
+/* PUT request to change the password of a given email. Find email, change corresponding password */
 app.put('/api/users/changePassword', function(req,res) {
-  
+  User.findOne({
+    where: { email: req.body.changeEmail },
+  }).done(user => {
+    if (user) {
+      user.update({
+        password: req.body.changePassword
+      }).then(() => {})
+    }
+    res.json('Password updated.');
+  })
 }
 )
-*/
 
 app.listen(3306, function() {
   console.log("listening on port 3306");
