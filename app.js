@@ -6,6 +6,8 @@ const cors = require('cors');
 const request = require('request');
 const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
+var passport = require('passport')
+  , LocalStrategy = require('passport-local').Strategy;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -201,6 +203,25 @@ app.put('/api/users/changePassword', function(req,res) {
     }
     res.json('Password updated.');
   })
+}
+)
+
+/* Using passport.js, check if entered username and password match with database */
+app.post('/login', function(req, res) {
+  passport.use(new LocalStrategy(
+  function(email, password, done) {
+    User.findOne({ email: email }, function(err, user) {
+      if (err) { return done(err); }
+      if (!user) {
+        return done(null, false, { message: 'Incorrect email address.' });
+      }
+      if (!user.validPassword(password)) {
+        return done(null, false, { message: 'Incorrect password.' });
+      }
+      return done(null, user);
+    });
+  }
+));
 }
 )
 
