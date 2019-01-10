@@ -6,11 +6,15 @@ const cors = require('cors');
 const request = require('request');
 const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
+const session = require('express-session');
 var passport = require('passport')
   , LocalStrategy = require('passport-local').Strategy;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(session({ secret: "minion" }));
 
 const sequelize = new Sequelize('mydb', 'root', 'root', {
   host: 'localhost',
@@ -117,6 +121,18 @@ sequelize.sync()
   });
   */
 
+/* Issues authenticated token */
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+/* Checks the session if a token already exists */
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
+});
+
 /* Simple get function from database. Does not actually get anything from database */
 app.get('/', function(req,res) {
   res.json("Brad's Sample Page");
@@ -207,23 +223,42 @@ app.put('/api/users/changePassword', function(req,res) {
 )
 
 /* Using passport.js, check if entered username and password match with database */
-app.post('/login', function(req, res) {
-  passport.use(new LocalStrategy(
-  function(email, password, done) {
-    User.findOne({ email: email }, function(err, user) {
-      if (err) { return done(err); }
+passport.use(new LocalStrategy({
+  usernameField: 'email'
+},
+function(email, password, done) {
+  User.findOne({
+    where: { email: email } }).then(user => {
       if (!user) {
         return done(null, false, { message: 'Incorrect email address.' });
       }
-      if (!user.validPassword(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-));
+      bcrypt.compare(password,user.password)
+        .then(result => {
+          if (result) {
+              return done(null, user);
+          } else {
+            return done(null, false, { message: 'Incorrect password.' });
+          }
+        }).catch(err => {
+          return done(null, false, { message: 'Runtime issues.' });
+        })
+    })
 }
-)
+));
+
+app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
+function(req,res) {
+
+  res.json('Success!');
+});
+
+app.get('/authenticated', function(req,res) {
+  res.json(req.user);
+})
+
+app.get('/error', function(req,res) {
+  res.json('Error.')
+})
 
 app.listen(3306, function() {
   console.log("listening on port 3306");
