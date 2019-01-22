@@ -307,12 +307,12 @@ app.get('/login',
     res.redirect("/");
   })
 
-
-app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
-function(req,res) {
-
-  res.json('Success!');
-});
+// /* Login with local strategy */
+// app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
+// function(req,res) {
+//
+//   res.json('Success!');
+// });
 
 app.get('/authenticated', function(req,res) {
   res.json(req.user);
