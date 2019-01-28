@@ -7,29 +7,15 @@ const request = require('request');
 const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
-var passport = require('passport')
-  , LocalStrategy = require('passport-local').Strategy;
-const JWTstrategy = require('passport-jwt').Strategy;
-const ExtractJWT = require('passport-jwt').ExtractJwt;
-var Auth0Strategy = require('passport-auth0'),
-  passport = require('passport');
-var strategy = new Auth0Strategy({
-  domain: 'localhost:3306',
-  clientID: 'idk',
-  clientSecret: 'minion',
-  callbackURL: '/callback'
-  },
-  function(accessToken, refreshToken, extraParams, profile, done) {
-    return done(null, profile);
-  }
-);
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(session({ secret: "minion" }));
-passport.use(strategy);
+
+
+// app.use(cors());
+// app.use(bodyParser.json());
+// app.use(passport.initialize());
+// app.use(passport.session());
+// app.use(session({ secret: "minion" }));
+// passport.use(strategy);
 
 const sequelize = new Sequelize('mydb', 'root', 'root', {
   host: 'localhost',
@@ -48,7 +34,7 @@ const sequelize = new Sequelize('mydb', 'root', 'root', {
 
 /* This defines a User with a first name, last name, email, phone number, and password */
 const User = sequelize.define('users', {
-  firstName: {
+  first_name: {
     type: Sequelize.STRING,
     /* Check that first name is between 2 and 45 letters */
     validate: {
@@ -59,7 +45,7 @@ const User = sequelize.define('users', {
       }
     }
   },
-  lastName: {
+  last_name: {
     type: Sequelize.STRING,
     /* Check that last name is between 2 and 45 letters */
     validate: {
@@ -90,7 +76,7 @@ const User = sequelize.define('users', {
       }
       }
     },
-  phoneNumber: {
+  phone_number: {
     type: Sequelize.STRING,
     /* Check that phone number is valid */
     validate: {
@@ -135,18 +121,18 @@ sequelize.sync()
     console.log(jane.toJSON());
   });
   */
-
-/* Issues authenticated token */
-passport.serializeUser(function(user, done) {
-  done(null, user.id);
-});
-
-/* Checks the session if a token already exists */
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
-    done(err, user);
-  });
-});
+//
+// /* Issues authenticated token */
+// passport.serializeUser(function(user, done) {
+//   done(null, user.id);
+// });
+//
+// /* Checks the session if a token already exists */
+// passport.deserializeUser(function(id, done) {
+//   User.findById(id, function(err, user) {
+//     done(err, user);
+//   });
+// });
 
 /* Simple get function from database. Does not actually get anything from database */
 app.get('/', function(req,res) {
@@ -173,10 +159,10 @@ app.post('/api/users/create', function(req,res) {
       }
       console.log(hashPassword);
       /* Define each field to its corresponding received json data */
-      newUser.firstName = req.body.firstName;
-      newUser.lastName = req.body.lastName;
+      newUser.first_name = req.body.first_name;
+      newUser.last_name = req.body.last_name;
       newUser.email = req.body.email;
-      newUser.phoneNumber = req.body.phoneNumber;
+      newUser.phone_number = req.body.phone_number;
       newUser.password = hashPassword;
       newUser.save().then(function(r) {
         let result = {};
@@ -290,22 +276,22 @@ app.put('/api/users/changePassword', function(req,res) {
 //   }),
 // );
 
-/* Login callback for failed login */
-app.get('/callback',
-  passport.authenticate('auth0', { failureRedirect: '/login' }),
-  function(req, res) {
-    if (!req.user) {
-      throw new Error('user null');
-    }
-    res.redirect("/");
-  }
-);
-
-/* 0Auth Implementation. */
-app.get('/login',
-  passport.authenticate('auth0', {}), function(req, res) {
-    res.redirect("/");
-  })
+// /* Login callback for failed login */
+// app.get('/callback',
+//   passport.authenticate('auth0', { failureRedirect: '/login' }),
+//   function(req, res) {
+//     if (!req.user) {
+//       throw new Error('user null');
+//     }
+//     res.redirect("/");
+//   }
+// );
+//
+// /* 0Auth Implementation. */
+// app.get('/login',
+//   passport.authenticate('auth0', {}), function(req, res) {
+//     res.redirect("/");
+//   })
 
 // /* Login with local strategy */
 // app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),

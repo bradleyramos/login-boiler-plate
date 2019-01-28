@@ -19,13 +19,13 @@ USE `mydb` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mydb`.`users` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `firstName` VARCHAR(45) NULL,
-  `lastName` VARCHAR(45) NULL,
+  `first_name` VARCHAR(45) NULL,
+  `last_name` VARCHAR(45) NULL,
   `email` TEXT NULL,
-  `phoneNumber` TEXT NULL,
+  `phone_number` TEXT NULL,
   `password` TEXT NULL,
-  `createdAt` DATETIME NULL,
-  `updatedAt` DATETIME NULL,
+  `created_at` DATETIME NULL,
+  `updated_at` DATETIME NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -36,8 +36,8 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `mydb`.`messages` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `content` TEXT NULL,
-  `createdAt` DATETIME NULL,
-  `updatedAt` DATETIME NULL,
+  `created_at` DATETIME NULL,
+  `updated_at` DATETIME NULL,
   `user_id` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_messages_users_idx` (`user_id` ASC) VISIBLE,
