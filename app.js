@@ -7,15 +7,31 @@ const request = require('request');
 const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
+var passport = require('passport')
+  , OAuthStrategy = require('passport-oauth').OAuthStrategy;
+const jwt = require('jsonwebtoken');
+var JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt;
 
+// var Auth0Strategy = require('passport-auth0'),
+//   passport = require('passport');
+// var strategy = new Auth0Strategy({
+//   domain: 'tagalongapp.auth0.com',
+//   clientID: 'McU8wBIRDR3yVaDuCyJmaEto1I2sY',
+//   clientSecret: 'minion',
+//   callbackURL: '/callback'
+//   },
+//   function(accessToken, refreshToken, extraParams, profile, done) {
+//     return done(null, profile);
+//   }
+// );
 
-
-// app.use(cors());
-// app.use(bodyParser.json());
-// app.use(passport.initialize());
-// app.use(passport.session());
-// app.use(session({ secret: "minion" }));
-// passport.use(strategy);
+app.use(cors());
+app.use(bodyParser.json());
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(session({ secret: "minion" }));
+passport.use(strategy);
 
 const sequelize = new Sequelize('mydb', 'root', 'root', {
   host: 'localhost',
@@ -227,32 +243,48 @@ app.put('/api/users/changePassword', function(req,res) {
 }
 )
 
-/* Local strategy. Doesn't work with API implementation */
-// /* Using passport.js, check if entered username and password match with database */
-// passport.use(new LocalStrategy({
-//   usernameField: 'email'
-// },
-// function(email, password, done) {
-//   User.findOne({
-//     where: { email: email } }).then(user => {
-//       if (!user) {
-//         return done(null, false, { message: 'Incorrect email address.' });
-//       }
-//       bcrypt.compare(password,user.password)
-//         .then(result => {
-//           if (result) {
-//               return done(null, user);
-//           } else {
-//             return done(null, false, { message: 'Incorrect password.' });
-//           }
-//         }).catch(err => {
-//           return done(null, false, { message: 'Runtime issues.' });
-//         })
-//     })
-// }
-// ));
+/* Local strategy. How to implement with API implementation? */
+/* Using passport.js, check if entered username and password match with database */
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password'
+},
+function(email, password, done) {
+  User.findOne({
+    where: { email: email } }).then(user => {
+      if (!user) {
+        return done(null, false, { message: 'Incorrect email address.' });
+      }
+      bcrypt.compare(password,user.password)
+        .then(result => {
+          if (result) {
+              return done(null, user);
+          } else {
+            return done(null, false, { message: 'Incorrect password.' });
+          }
+        }).catch(err => {
+          return done(null, false, { message: 'Runtime issues.' });
+        })
+    })
+}
+));
 
-// /* JWT implementation? what is the difference..? */
+//This verifies that the token sent by the user is valid --scotch.io
+passport.use(new JWTstrategy({
+  //secret we used to sign our JWT
+  secretOrKey : 'minion',
+  //we expect the user to send the token as a query paramater with the name 'secret_token'
+  jwtFromRequest : ExtractJWT.fromUrlQueryParameter('secret_token')
+}, async (token, done) => {
+  try {
+    //Pass the user details to the next middleware
+    return done(null, token.user);
+  } catch (error) {
+    done(error);
+  }
+}));
+
+/* Issue tokens--based on separate tutorial */
 // passport.use(
 //   'jwt',
 //   new JWTstrategy(opts, (jwt_payload, done) => {
@@ -276,29 +308,32 @@ app.put('/api/users/changePassword', function(req,res) {
 //   }),
 // );
 
-// /* Login callback for failed login */
-// app.get('/callback',
-//   passport.authenticate('auth0', { failureRedirect: '/login' }),
-//   function(req, res) {
-//     if (!req.user) {
-//       throw new Error('user null');
-//     }
-//     res.redirect("/");
-//   }
-// );
-//
-// /* 0Auth Implementation. */
-// app.get('/login',
-//   passport.authenticate('auth0', {}), function(req, res) {
-//     res.redirect("/");
-//   })
+/* Login callback for failed login */
+app.get('/callback',
+  passport.authenticate('auth0', { failureRedirect: '/login' }),
+  function(req, res) {
+    if (!req.user) {
+      throw new Error('user null');
+    }
+    res.redirect("/");
+  }
+);
 
-// /* Login with local strategy */
-// app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
-// function(req,res) {
-//
-//   res.json('Success!');
-// });
+/* 0Auth Implementation. */
+app.get('/login',
+  passport.authenticate('auth0', {}), function(req, res) {
+    res.redirect("/");
+  })
+
+/* Login with local strategy */
+app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
+function(req,res) {
+
+  res.json('Success!');
+
+app.get('/profile', (req, res, next) => {
+
+})
 
 app.get('/authenticated', function(req,res) {
   res.json(req.user);
