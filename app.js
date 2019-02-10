@@ -8,13 +8,30 @@ const Sequelize = require('sequelize');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 var passport = require('passport')
-  , LocalStrategy = require('passport-local').Strategy;
+  , OAuthStrategy = require('passport-oauth').OAuthStrategy;
+const jwt = require('jsonwebtoken');
+var JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt;
+
+// var Auth0Strategy = require('passport-auth0'),
+//   passport = require('passport');
+// var strategy = new Auth0Strategy({
+//   domain: 'tagalongapp.auth0.com',
+//   clientID: 'McU8wBIRDR3yVaDuCyJmaEto1I2sY',
+//   clientSecret: 'minion',
+//   callbackURL: '/callback'
+//   },
+//   function(accessToken, refreshToken, extraParams, profile, done) {
+//     return done(null, profile);
+//   }
+// );
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(session({ secret: "minion" }));
+passport.use(strategy);
 
 const sequelize = new Sequelize('mydb', 'root', 'root', {
   host: 'localhost',
@@ -33,7 +50,7 @@ const sequelize = new Sequelize('mydb', 'root', 'root', {
 
 /* This defines a User with a first name, last name, email, phone number, and password */
 const User = sequelize.define('users', {
-  firstName: {
+  first_name: {
     type: Sequelize.STRING,
     /* Check that first name is between 2 and 45 letters */
     validate: {
@@ -44,7 +61,7 @@ const User = sequelize.define('users', {
       }
     }
   },
-  lastName: {
+  last_name: {
     type: Sequelize.STRING,
     /* Check that last name is between 2 and 45 letters */
     validate: {
@@ -75,7 +92,7 @@ const User = sequelize.define('users', {
       }
       }
     },
-  phoneNumber: {
+  phone_number: {
     type: Sequelize.STRING,
     /* Check that phone number is valid */
     validate: {
@@ -120,18 +137,18 @@ sequelize.sync()
     console.log(jane.toJSON());
   });
   */
-
-/* Issues authenticated token */
-passport.serializeUser(function(user, done) {
-  done(null, user.id);
-});
-
-/* Checks the session if a token already exists */
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
-    done(err, user);
-  });
-});
+//
+// /* Issues authenticated token */
+// passport.serializeUser(function(user, done) {
+//   done(null, user.id);
+// });
+//
+// /* Checks the session if a token already exists */
+// passport.deserializeUser(function(id, done) {
+//   User.findById(id, function(err, user) {
+//     done(err, user);
+//   });
+// });
 
 /* Simple get function from database. Does not actually get anything from database */
 app.get('/', function(req,res) {
@@ -139,7 +156,7 @@ app.get('/', function(req,res) {
 }
 )
 
-/* Calls for the creation of a user, but only wors if all validation steps pass */
+/* Calls for the creation of a user, but only works if all validation steps pass */
 app.post('/api/users/create', function(req,res) {
   /* Because we are hashing the password ourselves, we have to validate the password before we hash it */
   var indicator = false;
@@ -158,10 +175,10 @@ app.post('/api/users/create', function(req,res) {
       }
       console.log(hashPassword);
       /* Define each field to its corresponding received json data */
-      newUser.firstName = req.body.firstName;
-      newUser.lastName = req.body.lastName;
+      newUser.first_name = req.body.first_name;
+      newUser.last_name = req.body.last_name;
       newUser.email = req.body.email;
-      newUser.phoneNumber = req.body.phoneNumber;
+      newUser.phone_number = req.body.phone_number;
       newUser.password = hashPassword;
       newUser.save().then(function(r) {
         let result = {};
@@ -181,7 +198,7 @@ app.post('/api/users/create', function(req,res) {
 )
 /* This is a test, converting an unhashed password to hash */
 app.post('/api/users/passTest', function(req,res) {
-  var password = req.body.password;
+  let password = req.body.password;
   bcrypt.hash(password,10)
     .then(hashPassword => {
       res.json(hashPassword);
@@ -213,18 +230,24 @@ app.put('/api/users/changePassword', function(req,res) {
     where: { email: req.body.changeEmail },
   }).done(user => {
     if (user) {
-      user.update({
-        password: req.body.changePassword
-      }).then(() => {})
+      let updatedPassword = req.body.changePassword;
+      bcrypt.hash(updatedPassword,10)
+        .then(hashUpdatedPassword => {
+          user.update({
+            password: hashUpdatedPassword
+          }).then(() => {})
+        })
     }
     res.json('Password updated.');
   })
 }
 )
 
+/* Local strategy. How to implement with API implementation? */
 /* Using passport.js, check if entered username and password match with database */
 passport.use(new LocalStrategy({
-  usernameField: 'email'
+  usernameField: 'email',
+  passwordField: 'password'
 },
 function(email, password, done) {
   User.findOne({
@@ -246,11 +269,71 @@ function(email, password, done) {
 }
 ));
 
+//This verifies that the token sent by the user is valid --scotch.io
+passport.use(new JWTstrategy({
+  //secret we used to sign our JWT
+  secretOrKey : 'minion',
+  //we expect the user to send the token as a query paramater with the name 'secret_token'
+  jwtFromRequest : ExtractJWT.fromUrlQueryParameter('secret_token')
+}, async (token, done) => {
+  try {
+    //Pass the user details to the next middleware
+    return done(null, token.user);
+  } catch (error) {
+    done(error);
+  }
+}));
+
+/* Issue tokens--based on separate tutorial */
+// passport.use(
+//   'jwt',
+//   new JWTstrategy(opts, (jwt_payload, done) => {
+//     try {
+//       User.findOne({
+//         where: {
+//           username: jwt_payload.id,
+//         },
+//       }).then(user => {
+//         if (user) {
+//           console.log('user found in db in passport');
+//           done(null, user);
+//         } else {
+//           console.log('user not found in db');
+//           done(null,false);
+//         }
+//       });
+//     } catch (err) {
+//       done(err);
+//     }
+//   }),
+// );
+
+/* Login callback for failed login */
+app.get('/callback',
+  passport.authenticate('auth0', { failureRedirect: '/login' }),
+  function(req, res) {
+    if (!req.user) {
+      throw new Error('user null');
+    }
+    res.redirect("/");
+  }
+);
+
+/* 0Auth Implementation. */
+app.get('/login',
+  passport.authenticate('auth0', {}), function(req, res) {
+    res.redirect("/");
+  })
+
+/* Login with local strategy */
 app.post('/login', passport.authenticate('local', {failureRedirect: '/error' }),
 function(req,res) {
 
   res.json('Success!');
-});
+
+app.get('/profile', (req, res, next) => {
+
+})
 
 app.get('/authenticated', function(req,res) {
   res.json(req.user);
