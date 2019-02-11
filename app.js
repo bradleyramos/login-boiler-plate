@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const passport = require('passport');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -9,7 +10,12 @@ app.use(bodyParser.json());
 
 let db = require('./server/config/sequelize.js')();
 
-require('./server/config/routes.js')(app, db);
+const routes = require('./server/config/routes.js')(app, db);
+const secureRoute = require('./server/config/secure-routes.js')(db);
+
+app.use('/', routes);
+app.use('/secure', passport.authenticate('jwt', { session : false }), secureRoute );
+
 
 app.listen(8000, function () {
   console.log("listening on port 8000");
