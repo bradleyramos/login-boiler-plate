@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
-const Message = require('./Message.js')
+const Message = require('./Message.js');
+const bcrypt = require('bcryptjs');
 
 module.exports = function (sequelize) {
     /* This defines a User with a first name, last name, email, phone number, and password */
@@ -68,6 +69,23 @@ module.exports = function (sequelize) {
                 }
             }
         },
+    },
+    {
+        hooks: {
+            afterValidate: (user, options) => {
+                let origPassword = user.password;
+
+                bcrypt.hash(origPassword, 10)
+                .then(hashPassword => {
+                    console.log(hashPassword);
+                    user.password = hashPassword;
+                    return sequelize.Promise.resolve(user);
+                })
+                .catch(err => {
+                    return sequelize.Promise.reject(new Error("Invalid password!"));
+                })
+            }
+        }
     });
 
     return User;
