@@ -1,10 +1,7 @@
-const passport = require('passport');
-
 module.exports = function (app, db) {
     const users = require('../controllers/users.js')(db);
 
-    app.use(passport.initialize());
-    app.use(passport.session());
+    require('./auth.js')(app, db);
 
     app.get('/', function (req, res) {
         users.index(req, res);
@@ -32,6 +29,10 @@ module.exports = function (app, db) {
         users.changePassword(req, res);
     })
 
+    /* */
+    app.get('/api/users/login', function (req, res) {
+      users.login(req, res);
+    })
     // /* Login callback for failed login */
     // app.get('/callback',
     //     passport.authenticate('auth0', { failureRedirect: '/login' }),

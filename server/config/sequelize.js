@@ -4,42 +4,43 @@ const fs = require('fs');
 let db ={};
 
 module.exports = function () {
-    const sequelize = new Sequelize('mydb', 'root', 'root', {
-        host: 'localhost',
-        dialect: 'mysql',
+  const sequelize = new Sequelize('mydb', 'root', 'root', {
+    host: 'localhost',
+    dialect: 'mysql',
+
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
     
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-        },
-    
-        // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
-        operatorsAliases: false,
+    // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
+    operatorsAliases: false,
 
-        define: {
-            underscored: true
-        }
-    });
+    define: {
+      underscored: true
+    }
+  });
 
-    let models_path = path.join(__dirname, './../models');
+  /* */
+  let models_path = path.join(__dirname, './../models');
 
-    fs.readdirSync(models_path).forEach(function (file) {
-        if (file.indexOf('.js') >= 0) {
-            db[file.substring(0, file.length - 3)] = require(models_path + '/' + file)(sequelize);
-        }
-    });
+  fs.readdirSync(models_path).forEach(function (file) {
+    if (file.indexOf('.js') >= 0) {
+      db[file.substring(0, file.length - 3)] = require(models_path + '/' + file)(sequelize);
+    }
+  });
 
-    db['User'].hasMany(db['Message'], { as: 'Users' });
-    db['User'].belongsToMany(db['User'], { as: 'Friend', through: 'friendships' });
+  db['User'].hasMany(db['Message'], { as: 'Users' });
+  db['User'].belongsToMany(db['User'], { as: 'Friend', through: 'friendships' });
 
-    sequelize.sync();
+  sequelize.sync();
 
-    console.log('sequelize is running.');
+  console.log('sequelize is running.');
 
-    db.sequelize = sequelize;
-    db.Sequelize = Sequelize;
+  db.sequelize = sequelize;
+  db.Sequelize = Sequelize;
 
-    return db;
+  return db;
 }

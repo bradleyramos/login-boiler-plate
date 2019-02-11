@@ -18,7 +18,7 @@ app.listen(8000, function () {
 /* Simple get function from database. Does not actually get anything from database */
 
 /* Local strategy. How to implement with API implementation? */
-/* Using passport.js, check if entered username and password match with database */
+// /* Using passport.js, check if entered username and password match with database */
 // passport.use(new LocalStrategy({
 //   usernameField: 'email',
 //   passwordField: 'password'
