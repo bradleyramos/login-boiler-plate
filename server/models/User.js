@@ -90,5 +90,13 @@ module.exports = function (sequelize) {
             }
         });
 
+    // When outputting user as json, do not output a password field
+    User.prototype.toJSON = function () {
+        var values = Object.assign({}, this.get());
+
+        delete values.password;
+        return values;
+    }
+
     return User;
 }
