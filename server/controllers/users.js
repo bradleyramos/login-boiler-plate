@@ -24,7 +24,7 @@ module.exports = function (db) {
                 result['message'] = 'Account creation succeeded.';
                 res.json(result);
             }).catch(err => {
-                console.log('qwerrr',err);
+                console.log('qwerrr', err);
                 let result = {};
                 for (let error of err.errors) {
                     result[error.path] = error.message;
@@ -70,6 +70,18 @@ module.exports = function (db) {
                 }
                 res.json('Password updated.');
             })
+        },
+        profile: function(req, res) {
+            function getUser() {
+                return new Promise(function (resolve, reject) {
+                  console.log(req._id);
+                    User.findOne({
+                        where: { email: req.user.email },
+                    }).done(user => resolve(user));
+                })
+            }
+
+            getUser().then(user => res.json(user))
         }
     }
 }
