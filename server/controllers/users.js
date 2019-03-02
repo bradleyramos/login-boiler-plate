@@ -3,6 +3,8 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = function (db) {
     const User = db['User'];
@@ -107,7 +109,7 @@ module.exports = function (db) {
                 })
             }
 
-            addUser(id, req.user.email).then(() => res.json({'msg': 'friend added!'})).catch(() => res.json({'msg': `error occurred!`}));
+            addUser(id, req.user.email).then(() => res.json({ 'msg': 'friend added!' })).catch(() => res.json({ 'msg': `error occurred!` }));
         },
         listFriendsByEmail: function (req, res) {
             User.findOne({
@@ -119,6 +121,23 @@ module.exports = function (db) {
                 }]
             }).done(user => {
                 res.json(user);
+            })
+        },
+        uploadAvatar: function (req, res) {
+            let base64Data = req.body.image.replace(/^data:image\/png;base64,/, "");
+            let static_path = path.join(__dirname, './../static_files');
+
+            fs.writeFile(`${static_path}/${req.body.name}.png`, base64Data, 'base64', function (err) {
+                console.log(err);
+            });
+
+            let url = `${req.protocol}://${req.get('host')}/static/${req.body.name}.png`;
+
+            User.findOne({
+                where: { email: req.user.email },
+            }).done(user => {
+                user.image_url = url;
+                user.save({skip: ['password', 'email']}).then(res.json("test"));
             })
         }
 

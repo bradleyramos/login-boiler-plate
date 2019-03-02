@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const bodyParser = require('body-parser');
 
 module.exports = function(db) {
   const users = require('../controllers/users.js')(db);
@@ -22,6 +23,9 @@ module.exports = function(db) {
   });
   router.get('/getFriends', (req, res, next) => {
     users.listFriendsByEmail(req, res);
-  })
+  });
+  router.post('/uploadAvatar', (req, res, next) => {
+    users.uploadAvatar(req, res);
+  });
   return router;
 }

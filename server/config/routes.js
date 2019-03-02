@@ -17,6 +17,9 @@ module.exports = function (app, db) {
     users.register(req, res);
   })
 
+  router.post('/api/upload', function (req, res) {
+    users.uploadAvatar(req, res);
+  })
 
   /* This is a test, converting an unhashed password to hash */
   router.post('/api/users/passTest', function (req, res) {
