@@ -61,7 +61,6 @@ io.on('connection', function (socket) {
         // do a user look up using token
         axios.get(`/secure/profile?secret_token=${token}`)
             .then(res => {
-                console.log(res);
                 connectedUsers[socket.id].first_name = res.data.first_name;
                 connectedUsers[socket.id].last_name = res.data.last_name;
                 socket.emit('status', {'msg': 'User info updated!'});

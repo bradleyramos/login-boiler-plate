@@ -17,5 +17,11 @@ module.exports = function(db) {
     //We'll just send back the user details and the token
     users.profile(req, res);
   });
+  router.get('/addUser/:id', (req, res, next) => {
+    users.addFriendById(req, res);
+  });
+  router.get('/getFriends', (req, res, next) => {
+    users.listFriendsByEmail(req, res);
+  })
   return router;
 }

@@ -69,6 +69,9 @@ module.exports = function (sequelize) {
                 }
             }
         },
+        image_url: {
+            type: Sequelize.STRING
+        }
     },
         {
             hooks: {

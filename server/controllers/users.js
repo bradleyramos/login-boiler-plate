@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const axios = require('axios');
 const bcrypt = require('bcryptjs');
 
 module.exports = function (db) {
@@ -71,10 +72,9 @@ module.exports = function (db) {
                 res.json('Password updated.');
             })
         },
-        profile: function(req, res) {
+        profile: function (req, res) {
             function getUser() {
                 return new Promise(function (resolve, reject) {
-                  console.log(req._id);
                     User.findOne({
                         where: { email: req.user.email },
                     }).done(user => resolve(user));
@@ -82,6 +82,45 @@ module.exports = function (db) {
             }
 
             getUser().then(user => res.json(user))
+        },
+        searchFriendsByEmail: function (req, res) {
+            function getUser() {
+                return new Promise(function (resolve, reject) {
+                    User.findOne({
+                        where: { email: req.body.email },
+                    }).done(user => resolve(user));
+                })
+            }
+
+            getUser().then(user => res.json(user))
+        },
+        addFriendById: function (req, res) {
+            let id = req.params.id;
+            function addUser(userId, email) {
+                return new Promise(function (resolve, reject) {
+                    User.findOne({
+                        where: { email: email },
+                    }).done(user => {
+                        user.setFriend([userId])
+                        resolve();
+                    })
+                })
+            }
+
+            addUser(id, req.user.email).then(() => res.json({'msg': 'friend added!'})).catch(() => res.json({'msg': `error occurred!`}));
+        },
+        listFriendsByEmail: function (req, res) {
+            User.findOne({
+                where: { email: req.user.email },
+                include: [{
+                    model: User,
+                    as: 'Friend',
+                    required: true
+                }]
+            }).done(user => {
+                res.json(user);
+            })
         }
+
     }
 }
