@@ -76,6 +76,9 @@ module.exports = function (app, db) {
     })(req, res, next);
   });
 
+  router.use('/signup',function (error, req, res, next) {
+    res.json(error);
+  });
 
   // generalized error function to guard against middleware failure
   router.use(function (error, req, res, next) {

@@ -4,8 +4,8 @@ const fs = require('fs');
 let db ={};
 
 module.exports = function () {
-  const sequelize = new Sequelize('mydb', 'root', 'root', {
-    host: 'localhost',
+  const sequelize = new Sequelize(process.env.DBNAME, process.env.USERNAME, process.env.PASSWORD, {
+    host: process.env.HOST,
     dialect: 'mysql',
 
     pool: {

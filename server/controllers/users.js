@@ -112,16 +112,18 @@ module.exports = function (db) {
             addUser(id, req.user.email).then(() => res.json({ 'msg': 'friend added!' })).catch(() => res.json({ 'msg': `error occurred!` }));
         },
         listFriendsByEmail: function (req, res) {
-            User.findOne({
+          let friends = [];
+            User.findAll({
                 where: { email: req.user.email },
                 include: [{
                     model: User,
                     as: 'Friend',
                     required: true
                 }]
-            }).done(user => {
-                res.json(user);
-            })
+            }).then(user => {
+                friends.push(user.Friend);
+            });
+          res.json(friends);
         },
         uploadAvatar: function (req, res) {
             let base64Data = req.body.image.replace(/^data:image\/png;base64,/, "");

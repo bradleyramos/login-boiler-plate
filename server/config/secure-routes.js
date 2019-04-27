@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const bodyParser = require('body-parser');
+const cors = require('cors');
 
 module.exports = function(db) {
   const users = require('../controllers/users.js')(db);
+  
+  router.use(cors());
   
   //Displays information tailored according to the logged in user
   router.get('/info', (req, res, next) => {

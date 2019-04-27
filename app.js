@@ -53,6 +53,11 @@ io.on('connection', function (socket) {
     socket.emit('send', history);
     socket.on('message', function(data) {
         console.log(data);
+        if (data.msg == "Alert - Out of path" || data.msg == "Alert - Out of designated area" || data.msg == "Alert - Out of web")
+        {
+          console.log(data);
+          socket.broadcast.emit('status', data);
+        }
         let obj = new Message(data.name,data.msg);
         history.push(obj);
         socket.emit('send', [obj]);
@@ -62,8 +67,9 @@ io.on('connection', function (socket) {
     socket.on('shareUser', function(data) {
         let token = data['token'];
         // do a user look up using token
-        axios.get(`/secure/profile?secret_token=${token}`)
+        axios.get(`https://bradleyramos-login-boiler-plate-2.glitch.me/secure/profile?secret_token=${token}`)
             .then(res => {
+                console.log('New connection: ',res.data);
                 connectedUsers[socket.id].first_name = res.data.first_name;
                 connectedUsers[socket.id].last_name = res.data.last_name;
                 socket.emit('status', {'msg': 'User info updated!'});
@@ -77,6 +83,8 @@ io.on('connection', function (socket) {
         connectedUsers[socket.id].latitude = data.latitude;
         connectedUsers[socket.id].longitude = data.longitude;
         socket.broadcast.emit('newUser' ,connectedUsers[socket.id]);
+        console.log(connectedUsers[socket.id]);
+        console.log(data.message);
         socket.emit('status', {'msg': 'User location shared!'});
     })
 });
