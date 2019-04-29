@@ -8,6 +8,7 @@ const fs = require('fs');
 
 module.exports = function (db) {
     const User = db['User'];
+    const Friendship = db['Friendship'];
 
     return {
         index: function (req, res) {
@@ -96,20 +97,49 @@ module.exports = function (db) {
 
             getUser().then(user => res.json(user))
         },
-        addFriendById: function (req, res) {
+        addFriendById: async function (req, res) {
             let id = req.params.id;
-            function addUser(userId, email) {
+            function retrieveId(email) {
+              return new Promise(function (resolve, reject) {
+                User.findOne({
+                  where: { email: email },
+                }).done(user => {
+                  resolve(user.id);
+                })
+              })
+            }
+
+            function addUser(userId, friendId) {
                 return new Promise(function (resolve, reject) {
-                    User.findOne({
-                        where: { email: email },
-                    }).done(user => {
-                        user.setFriend([userId])
-                        resolve();
+                    let entry = new Friendship();
+                    entry.user_id = userId;
+                    entry.friend_id = friendId;
+                    entry.is_accepted = false;
+                    entry.save().then(function (r) {
+                        let result = {};
+                        result['message'] = 'Friendship succeeded.';
+                        resolve(result);
+                    }).catch(err => {
+                        let result = {};
+                        if (err.errors) {
+                          for (let error of err.errors) {
+                              result[error.path] = error.message;
+                          }
+                        }
+                        result['message'] = 'Friendship failed.';
+                        resolve(result);
                     })
                 })
             }
 
-            addUser(id, req.user.email).then(() => res.json({ 'msg': 'friend added!' })).catch(() => res.json({ 'msg': `error occurred!` }));
+            let ownerId = await retrieveId(req.user.email);
+
+            if (ownerId == id) {
+              res.json({'message': 'Cannot add yourself!'});
+            }
+
+            let result = await addUser(ownerId, id);
+            res.json(result);
         },
         listFriendsByEmail: function (req, res) {
           let friends = [];

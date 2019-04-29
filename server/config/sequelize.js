@@ -4,8 +4,8 @@ const fs = require('fs');
 let db ={};
 
 module.exports = function () {
-  const sequelize = new Sequelize(process.env.DBNAME, process.env.USERNAME, process.env.PASSWORD, {
-    host: process.env.HOST,
+  const sequelize = new Sequelize('mydb', 'root', 'root', {
+    host: 'localhost',
     dialect: 'mysql',
 
     pool: {
@@ -14,7 +14,7 @@ module.exports = function () {
       acquire: 30000,
       idle: 10000
     },
-    
+
     // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
     operatorsAliases: false,
 
@@ -33,7 +33,7 @@ module.exports = function () {
   });
 
   db['User'].hasMany(db['Message'], { as: 'Users' });
-  db['User'].belongsToMany(db['User'], { as: 'Friend', through: 'friendships' });
+  db['User'].belongsToMany(db['User'], { as: 'Friend', through: db['Friendship'] });
 
   sequelize.sync();
 
