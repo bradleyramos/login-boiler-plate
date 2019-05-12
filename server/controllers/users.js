@@ -97,7 +97,7 @@ module.exports = function (db) {
 
             getUser().then(user => res.json(user))
         },
-        addFriendById: async function (req, res) {
+        requestFriendById: async function (req, res) {
             let id = req.params.id;
             function retrieveId(email) {
               return new Promise(function (resolve, reject) {
@@ -109,7 +109,7 @@ module.exports = function (db) {
               })
             }
 
-            function addUser(userId, friendId) {
+            function sendFriendRequest(userId, friendId) {
                 return new Promise(function (resolve, reject) {
                     let entry = new Friendship();
                     entry.user_id = userId;
@@ -138,12 +138,11 @@ module.exports = function (db) {
               res.json({'message': 'Cannot add yourself!'});
             }
 
-            let result = await addUser(ownerId, id);
+            let result = await sendFriendRequest(ownerId, id);
             res.json(result);
         },
-        listFriendsByEmail: function (req, res) {
-          let friends = [];
-            User.findAll({
+        listFriendsByPhoneNumber: function (req, res) {
+            User.findOne({
                 where: { email: req.user.email },
                 include: [{
                     model: User,
@@ -151,9 +150,16 @@ module.exports = function (db) {
                     required: true
                 }]
             }).then(user => {
-                friends.push(user.Friend);
+              res.json(user.Friend);
             });
-          res.json(friends);
+        },
+        listUsersByPhoneNumber: function (req,res) {
+          User.findAll({
+            contains: { phone_number: req.body.phone_number },
+
+          }).then(users => {
+            res.json(users);
+          })
         },
         uploadAvatar: function (req, res) {
             let base64Data = req.body.image.replace(/^data:image\/png;base64,/, "");

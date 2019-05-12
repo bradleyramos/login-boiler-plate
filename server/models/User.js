@@ -55,9 +55,19 @@ module.exports = function (sequelize) {
             /* Check that phone number is valid */
             validate: {
                 validatePhoneNumber: function (value) {
-                    if (value == "" || !/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(value)) {
+                    if (value == "" || !/^[0-9]{10}$/.test(value)) {
                         throw new Error('Must be valid phone number.')
                     }
+                },
+                validateUniquePhoneNumber: function (value, next) {
+                  User.findOne({
+                      where: { phone_number: value },
+                  }).done(user => {
+                      if (user) {
+                          return next('Phone number already exists.');
+                      }
+                      next();
+                  })
                 }
             }
         },
