@@ -27,29 +27,6 @@ module.exports = function (sequelize) {
                 }
             }
         },
-        email: {
-            type: Sequelize.STRING,
-            /* Check that the email is valid using built-in validation */
-            validate: {
-                isEmail: {
-                    msg: "Must be valid email."
-                },
-                /* Make a call to the database to see if the email has already been used */
-                validateUniqueEmail: function (value, next) {
-                  if (value == "") {
-                      throw new Error('Email is empty.');
-                  }
-                    User.findOne({
-                        where: { email: value },
-                    }).done(user => {
-                        if (user) {
-                            return next('Email already exists.');
-                        }
-                        next();
-                    })
-                }
-            }
-        },
         phone_number: {
             type: Sequelize.STRING,
             /* Check that phone number is valid */
@@ -58,9 +35,23 @@ module.exports = function (sequelize) {
                     if (value == "" || !/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(value)) {
                         throw new Error('Must be valid phone number.')
                     }
+                },
+                /* Make a call to the database to see if the phone number has already been used */
+                validateUniquePhoneNumber: function (value, next) {
+                  if (value == "") {
+                      throw new Error('Email is empty.');
+                  }
+                    User.findOne({
+                        where: { phone_number: value },
+                    }).done(user => {
+                        if (user) {
+                            return next('Phone number already exists.');
+                        }
+                        next();
+                    })
                 }
-            }
-        },
+        }
+      },
         password: {
             type: Sequelize.STRING,
             /* Check that password is not an empty string (Did the indicator flag get triggered?) */
