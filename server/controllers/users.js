@@ -20,6 +20,7 @@ module.exports = function (db) {
 
             newUser.first_name = req.body.first_name;
             newUser.last_name = req.body.last_name;
+            newUser.email = req.body.email;
             newUser.phone_number = req.body.phone_number;
             newUser.password = req.body.password;
             newUser.save().then(function (r) {
@@ -60,7 +61,7 @@ module.exports = function (db) {
         },
         changePassword: function (req, res) {
             User.findOne({
-                where: { phone_number: req.body.changePhoneNumber },
+                where: { email: req.body.changeEmail },
             }).done(user => {
                 if (user) {
                     let updatedPassword = req.body.changePassword;
@@ -78,18 +79,18 @@ module.exports = function (db) {
             function getUser() {
                 return new Promise(function (resolve, reject) {
                     User.findOne({
-                        where: { phone_number: req.user.phone_number },
+                        where: { email: req.user.email },
                     }).done(user => resolve(user));
                 })
             }
 
             getUser().then(user => res.json(user))
         },
-        searchFriendsByPhoneNumber: function (req, res) {
+        searchFriendsByEmail: function (req, res) {
             function getUser() {
                 return new Promise(function (resolve, reject) {
                     User.findOne({
-                        where: { phone_number: req.body.phone_number },
+                        where: { email: req.body.email },
                     }).done(user => resolve(user));
                 })
             }
@@ -98,10 +99,10 @@ module.exports = function (db) {
         },
         addFriendById: async function (req, res) {
             let id = req.params.id;
-            function retrieveId(phoneNumber) {
+            function retrieveId(email) {
               return new Promise(function (resolve, reject) {
                 User.findOne({
-                  where: { phone_number: phoneNumber },
+                  where: { email: email },
                 }).done(user => {
                   resolve(user.id);
                 })
@@ -131,7 +132,7 @@ module.exports = function (db) {
                 })
             }
 
-            let ownerId = await retrieveId(req.user.phone_number);
+            let ownerId = await retrieveId(req.user.email);
 
             if (ownerId == id) {
               res.json({'message': 'Cannot add yourself!'});
@@ -140,10 +141,10 @@ module.exports = function (db) {
             let result = await addUser(ownerId, id);
             res.json(result);
         },
-        listFriendsByPhoneNumber: function (req, res) {
+        listFriendsByEmail: function (req, res) {
           let friends = [];
             User.findAll({
-                where: { phone_number: req.user.phone_number },
+                where: { email: req.user.email },
                 include: [{
                     model: User,
                     as: 'Friend',
@@ -165,7 +166,7 @@ module.exports = function (db) {
             let url = `${req.protocol}://${req.get('host')}/static/${req.body.name}.png`;
 
             User.findOne({
-                where: { phone_number: req.user.phone_number },
+                where: { email: req.user.email },
             }).done(user => {
                 user.image_url = url;
                 user.save({skip: ['password', 'email']}).then(res.json("test"));

@@ -4,9 +4,9 @@ const cors = require('cors');
 
 module.exports = function(db) {
   const users = require('../controllers/users.js')(db);
-
+  
   router.use(cors());
-
+  
   //Displays information tailored according to the logged in user
   router.get('/info', (req, res, next) => {
     //We'll just send back the user details and the token
@@ -24,7 +24,7 @@ module.exports = function(db) {
     users.addFriendById(req, res);
   });
   router.get('/getFriends', (req, res, next) => {
-    users.listFriendsByPassword(req, res);
+    users.listFriendsByEmail(req, res);
   });
   router.post('/uploadAvatar', (req, res, next) => {
     users.uploadAvatar(req, res);
