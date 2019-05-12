@@ -24,7 +24,7 @@ module.exports = function(db) {
     users.addFriendById(req, res);
   });
   router.get('/getFriends', (req, res, next) => {
-    users.listFriendsByPassword(req, res);
+    users.listFriendsByPhoneNumber(req, res);
   });
   router.post('/uploadAvatar', (req, res, next) => {
     users.uploadAvatar(req, res);

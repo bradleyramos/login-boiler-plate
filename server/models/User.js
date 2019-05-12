@@ -39,7 +39,7 @@ module.exports = function (sequelize) {
                 /* Make a call to the database to see if the phone number has already been used */
                 validateUniquePhoneNumber: function (value, next) {
                   if (value == "") {
-                      throw new Error('Email is empty.');
+                      throw new Error('Phone number is empty.');
                   }
                     User.findOne({
                         where: { phone_number: value },
