@@ -23,6 +23,9 @@ module.exports = function(db) {
     //We'll just send back the user details and the token
     users.profile(req, res);
   });
+  router.get('/getFriendRequests', (req, res, next) => {
+    users.listFriendRequests(req, res);
+  });
   router.get('/sendFriendRequest/:id', (req, res, next) => {
     users.requestFriendById(req, res);
   });

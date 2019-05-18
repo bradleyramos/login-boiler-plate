@@ -154,6 +154,19 @@ module.exports = function (db) {
                 res.json(users.filter(f => f.friendships.is_accepted));
             });
         },
+        listFriendRequests: function (req, res) {
+            User.findOne({
+                where: { email: req.user.email },
+                include: [{
+                    model: User,
+                    as: 'Friend',
+                    required: true
+                }]
+            }).then(user => {
+                let users = user.Friend;
+                res.json(users.filter(f => !f.friendships.is_accepted));
+            });
+        },
         listUsersByPhoneNumber: function (req,res) {
           User.findAll({
             contains: { phone_number: req.body.phone_number },
