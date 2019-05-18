@@ -42,7 +42,7 @@ module.exports = function(db) {
     users.listUsersByPhoneNumber(req,res);
   });
   router.get('/searchFriends', (req, res, next) => {
-
+    
   });
   router.get('/getFriends', (req, res, next) => {
     users.listFriends(req, res);

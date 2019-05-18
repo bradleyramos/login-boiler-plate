@@ -184,7 +184,7 @@ module.exports = function (db) {
             let result = await acceptFriendRequest(ownerId, id);
             res.json(result);
         },
-        deleteFriendById: function (req, res) {
+        deleteFriendById: async function (req, res) {
             let id = req.params.id;
             function retrieveId(email) {
               return new Promise(function (resolve, reject) {
