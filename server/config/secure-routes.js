@@ -30,10 +30,10 @@ module.exports = function(db) {
     users.requestFriendById(req, res);
   });
   router.get('/acceptFriendRequest/:id', (req, res, next) => {
-    users.acceptFriendRequest(req, res);
+    users.acceptFriendById(req, res);
   });
   router.get('/removeFriend/:id', (req, res, next) => {
-
+    users.deleteFriendById(req, res);
   });
   router.get('/searchUsers', (req, res, next) => {
     let queryString = url.parse(req.url, true).query;

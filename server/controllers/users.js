@@ -158,6 +158,7 @@ module.exports = function (db) {
                     Friendship.findOne({
                         where: { user_id: userId, friend_id: friendId }
                     }).done(friendship => {
+                        let result = {};
                         if (friendship) {
                             friendship.update({
                                 is_accepted: true
@@ -168,7 +169,7 @@ module.exports = function (db) {
                         }
                         else {
                             result['message'] = 'Friendship failed.';
-                            reject(result);
+                            resolve(result);
                         }
                     })
                 })
@@ -177,10 +178,53 @@ module.exports = function (db) {
             let ownerId = await retrieveId(req.user.email);
 
             if (ownerId == id) {
-              res.json({'message': 'Cannot add yourself!'});
+              res.json({'message': 'Cannot accept yourself!'});
             }
 
-            let result = await sendFriendRequest(ownerId, id);
+            let result = await acceptFriendRequest(ownerId, id);
+            res.json(result);
+        },
+        deleteFriendById: function (req, res) {
+            let id = req.params.id;
+            function retrieveId(email) {
+              return new Promise(function (resolve, reject) {
+                User.findOne({
+                  where: { email: email },
+                }).done(user => {
+                  resolve(user.id);
+                })
+              })
+            }
+
+            function deleteFriend(userId, friendId) {
+                return new Promise(function (resolve, reject) {
+                    Friendship.findOne({
+                        where: { user_id: userId, friend_id: friendId }
+                    }).done(friendship => {
+                        let result = {};
+                        if (friendship) {
+                            friendship.destroy({
+                                force: true
+                            }).then(() => {
+                                result['message'] = 'Friendship deleted.';
+                                resolve(result);
+                            })
+                        }
+                        else {
+                            result['message'] = 'Friendship wasn\'t deleted.';
+                            resolve(result);
+                        }
+                    })
+                })
+            }
+
+            let ownerId = await retrieveId(req.user.email);
+
+            if (ownerId == id) {
+              res.json({'message': 'Cannot delete yourself!'});
+            }
+
+            let result = await deleteFriend(ownerId, id);
             res.json(result);
         },
         listFriends: function (req, res) {
