@@ -141,7 +141,7 @@ module.exports = function (db) {
             let result = await sendFriendRequest(ownerId, id);
             res.json(result);
         },
-        listFriendsByPhoneNumber: function (req, res) {
+        listFriends: function (req, res) {
             User.findOne({
                 where: { email: req.user.email },
                 include: [{
@@ -150,7 +150,8 @@ module.exports = function (db) {
                     required: true
                 }]
             }).then(user => {
-              res.json(user.Friend);
+                let users = user.Friend;
+                res.json(users.filter(f => f.friendships.is_accepted));
             });
         },
         listUsersByPhoneNumber: function (req,res) {

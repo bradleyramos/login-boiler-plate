@@ -42,7 +42,7 @@ module.exports = function(db) {
 
   });
   router.get('/getFriends', (req, res, next) => {
-    users.listFriendsByPhoneNumber(req, res);
+    users.listFriends(req, res);
   });
   router.post('/uploadAvatar', (req, res, next) => {
     users.uploadAvatar(req, res);
