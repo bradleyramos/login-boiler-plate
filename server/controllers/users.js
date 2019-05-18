@@ -141,6 +141,48 @@ module.exports = function (db) {
             let result = await sendFriendRequest(ownerId, id);
             res.json(result);
         },
+        acceptFriendById: async function (req, res) {
+            let id = req.params.id;
+            function retrieveId(email) {
+              return new Promise(function (resolve, reject) {
+                User.findOne({
+                  where: { email: email },
+                }).done(user => {
+                  resolve(user.id);
+                })
+              })
+            }
+
+            function acceptFriendRequest(userId, friendId) {
+                return new Promise(function (resolve, reject) {
+                    Friendship.findOne({
+                        where: { user_id: userId, friend_id: friendId }
+                    }).done(friendship => {
+                        if (friendship) {
+                            friendship.update({
+                                is_accepted: true
+                            }).then(() => {
+                                result['message'] = 'Friendship succeeded.';
+                                resolve(result);
+                            })
+                        }
+                        else {
+                            result['message'] = 'Friendship failed.';
+                            reject(result);
+                        }
+                    })
+                })
+            }
+
+            let ownerId = await retrieveId(req.user.email);
+
+            if (ownerId == id) {
+              res.json({'message': 'Cannot add yourself!'});
+            }
+
+            let result = await sendFriendRequest(ownerId, id);
+            res.json(result);
+        },
         listFriends: function (req, res) {
             User.findOne({
                 where: { email: req.user.email },
