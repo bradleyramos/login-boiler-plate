@@ -178,8 +178,8 @@ module.exports = function (db) {
             function createFriendship(userId, friendId) {
                 return new Promise(function (resolve, reject) {
                     let entry = new Friendship();
-                    entry.user_id = friendId;
-                    entry.friend_id = userId;
+                    entry.user_id = userId;
+                    entry.friend_id = friendId;
                     entry.is_accepted = true;
                     entry.save().then(function (r) {
                         let result = {};
@@ -204,9 +204,9 @@ module.exports = function (db) {
               res.json({'message': 'Cannot accept yourself!'});
             }
 
-            let result = await acceptFriendRequest(ownerId, id);
+            let result = await acceptFriendRequest(id, ownerId);
 
-            if (result['message'] == 'Friendship succeeded') {
+            if (result['message'] == 'Friendship succeeded.') {
                 result = await createFriendship(ownerId, id);
             }
 
@@ -313,23 +313,36 @@ module.exports = function (db) {
                   return res.json([]);
                 }
                 let users = user.Friend;
-                res.json(users.filter(f => !f.friendships.is_accepted));
+                let friendships = users.filter(f => !f.friendships.is_accepted);
+                friendships = friendships.map(f => f.friendships);
+                res.json(friendships);
             });
         },
-        listFriendRequestsReceived: function (req, res) {
-            User.findOne({
-                where: { email: req.user.email },
-                include: [{
-                    model: User,
-                    as: 'Friend',
-                    required: false
-                }]
-            }).then(user => {
-                if (!user.Friend) {
+        listFriendRequestsReceived: async function (req, res) {
+            function retrieveId(email) {
+              return new Promise(function(resolve, reject) {
+                User.findOne({
+                    where: { email: email }
+                }).then(user => {
+                    if (!user) {
+                      resolve(-1);
+                    }
+                    else {
+                      resolve(user.id);
+                    }
+                });
+              })
+            }
+
+            let id = await retrieveId(req.user.email);
+
+            Friendship.findAll({
+                where: { friend_id: id }
+            }).then(friends => {
+                if (!friends) {
                   return res.json([]);
                 }
-                let users = user.Friend;
-                res.json(users.filter(f => !f.friendships.is_accepted));
+                res.json(friends);
             });
         },
         listUsersByPhoneNumber: function (req,res) {
