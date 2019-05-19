@@ -290,22 +290,44 @@ module.exports = function (db) {
                 include: [{
                     model: User,
                     as: 'Friend',
-                    required: true
+                    required: false
                 }]
             }).then(user => {
+                if (!user.Friend) {
+                  return res.json([]);
+                }
                 let users = user.Friend;
                 res.json(users.filter(f => f.friendships.is_accepted));
             });
         },
-        listFriendRequests: function (req, res) {
+        listFriendRequestsSent: function (req, res) {
             User.findOne({
                 where: { email: req.user.email },
                 include: [{
                     model: User,
                     as: 'Friend',
-                    required: true
+                    required: false
                 }]
             }).then(user => {
+                if (!user.Friend) {
+                  return res.json([]);
+                }
+                let users = user.Friend;
+                res.json(users.filter(f => !f.friendships.is_accepted));
+            });
+        },
+        listFriendRequestsReceived: function (req, res) {
+            User.findOne({
+                where: { email: req.user.email },
+                include: [{
+                    model: User,
+                    as: 'Friend',
+                    required: false
+                }]
+            }).then(user => {
+                if (!user.Friend) {
+                  return res.json([]);
+                }
                 let users = user.Friend;
                 res.json(users.filter(f => !f.friendships.is_accepted));
             });

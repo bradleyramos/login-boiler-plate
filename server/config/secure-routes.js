@@ -23,8 +23,11 @@ module.exports = function(db) {
     //We'll just send back the user details and the token
     users.profile(req, res);
   });
-  router.get('/getFriendRequests', (req, res, next) => {
-    users.listFriendRequests(req, res);
+  router.get('/getFriendRequestsSent', (req, res, next) => {
+    users.listFriendRequestsSent(req, res);
+  });
+  router.get('/getFriendRequestsReceived', (req, res, next) => {
+    users.listFriendRequestsReceived(req, res);
   });
   router.get('/sendFriendRequest/:id', (req, res, next) => {
     users.requestFriendById(req, res);
@@ -42,7 +45,7 @@ module.exports = function(db) {
     users.listUsersByPhoneNumber(req,res);
   });
   router.get('/searchFriends', (req, res, next) => {
-    
+
   });
   router.get('/getFriends', (req, res, next) => {
     users.listFriends(req, res);
