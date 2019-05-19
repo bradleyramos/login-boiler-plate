@@ -175,6 +175,29 @@ module.exports = function (db) {
                 })
             }
 
+            function createFriendship(userId, friendId) {
+                return new Promise(function (resolve, reject) {
+                    let entry = new Friendship();
+                    entry.user_id = friendId;
+                    entry.friend_id = userId;
+                    entry.is_accepted = true;
+                    entry.save().then(function (r) {
+                        let result = {};
+                        result['message'] = 'Friendship succeeded.';
+                        resolve(result);
+                    }).catch(err => {
+                        let result = {};
+                        if (err.errors) {
+                          for (let error of err.errors) {
+                              result[error.path] = error.message;
+                          }
+                        }
+                        result['message'] = 'Friendship failed.';
+                        resolve(result);
+                    })
+                })
+            }
+
             let ownerId = await retrieveId(req.user.email);
 
             if (ownerId == id) {
@@ -182,10 +205,16 @@ module.exports = function (db) {
             }
 
             let result = await acceptFriendRequest(ownerId, id);
+
+            if (result['message'] == 'Friendship succeeded') {
+                result = await createFriendship(ownerId, id);
+            }
+
             res.json(result);
         },
         deleteFriendById: async function (req, res) {
             let id = req.params.id;
+            let is_accepted = false;
             function retrieveId(email) {
               return new Promise(function (resolve, reject) {
                 User.findOne({
@@ -200,6 +229,29 @@ module.exports = function (db) {
                 return new Promise(function (resolve, reject) {
                     Friendship.findOne({
                         where: { user_id: userId, friend_id: friendId }
+                    }).done(friendship => {
+                        let result = {};
+                        is_accepted = friendship.is_accepted;
+                        if (friendship) {
+                            friendship.destroy({
+                                force: true
+                            }).then(() => {
+                                result['message'] = 'Friendship deleted.';
+                                resolve(result);
+                            })
+                        }
+                        else {
+                            result['message'] = 'Friendship wasn\'t deleted.';
+                            resolve(result);
+                        }
+                    })
+                })
+            }
+
+            function deleteFriendship(userId, friendId) {
+                return new Promise(function (resolve, reject) {
+                    Friendship.findOne({
+                        where: { user_id: friendId, friend_id: userId }
                     }).done(friendship => {
                         let result = {};
                         if (friendship) {
@@ -225,6 +277,11 @@ module.exports = function (db) {
             }
 
             let result = await deleteFriend(ownerId, id);
+
+            if (result['message'] == 'Friendship deleted' && is_accepted) {
+                result = await deleteFriendship(ownerId, id);
+            }
+
             res.json(result);
         },
         listFriends: function (req, res) {
