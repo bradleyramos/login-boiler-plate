@@ -85,12 +85,18 @@ module.exports = function (db) {
                 }).done(friendship => {
                     let result = {};
                     if (friendship) {
+                      if (friendship.is_accepted) {
+                        result['message'] = 'Friendship failed.';
+                        resolve(result);
+                      }
+                      else {
                         friendship.update({
                             is_accepted: true
                         }).then(() => {
                             result['message'] = 'Friendship succeeded.';
                             resolve(result);
                         })
+                      }
                     }
                     else {
                         result['message'] = 'Friendship failed.';
