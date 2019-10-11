@@ -15,62 +15,36 @@ CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
 USE `mydb` ;
 
 -- -----------------------------------------------------
--- Table `mydb`.`users`
+-- Table `mydb`.`stylist`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`users` (
+CREATE TABLE IF NOT EXISTS `mydb`.`stylist` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `first_name` VARCHAR(45) NULL,
   `last_name` VARCHAR(45) NULL,
   `email` TEXT NULL,
-  `phone_number` TEXT NULL,
   `password` TEXT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
   `image_url` TEXT NULL,
+  `bio_url` TEXT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`messages`
+-- Table `mydb`.`requests`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`messages` (
+CREATE TABLE IF NOT EXISTS `mydb`.`requests` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `content` TEXT NULL,
   `created_at` DATETIME NULL,
   `updated_at` DATETIME NULL,
-  `user_id` INT NOT NULL,
+  `stylist_id` INT NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_messages_users_idx` (`user_id` ASC) VISIBLE,
+  INDEX `fk_messages_users_idx` (`stylist_id` ASC) VISIBLE,
   CONSTRAINT `fk_messages_users`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `mydb`.`users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `mydb`.`friendships`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mydb`.`friendships` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `user_id` INT NOT NULL,
-  `friend_id` INT NOT NULL,
-  `is_accepted` BIT(1) NOT NULL,
-  `updated_at` DATETIME NOT NULL,
-  `created_at` DATETIME NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `fk_friendships_users1_idx` (`user_id` ASC) VISIBLE,
-  INDEX `fk_friendships_users2_idx` (`friend_id` ASC) VISIBLE,
-  CONSTRAINT `fk_friendships_users1`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `mydb`.`users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_friendships_users2`
-    FOREIGN KEY (`friend_id`)
-    REFERENCES `mydb`.`users` (`id`)
+    FOREIGN KEY (`stylist_id`)
+    REFERENCES `mydb`.`stylist` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

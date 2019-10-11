@@ -32,6 +32,7 @@ module.exports = function () {
     }
   });
 
+  db[]
   db['User'].hasMany(db['Message'], { as: 'Users' });
   db['User'].belongsToMany(db['User'], { as: 'Friend', through: db['Friendship'] });
 
